@@ -145,10 +145,8 @@ if __name__ == '__main__':
 	
 	# Set checkpoint to load from; set to None if starting from scratch
 	loadFilename = None
-	checkpoint_iter = 4000
-	#loadFilename = os.path.join(save_dir, model_name, corpus_name,
-	#                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
-	#                            '{}_checkpoint.tar'.format(checkpoint_iter))
+	checkpoint_iter = 8000
+	loadFilename = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),'{}_checkpoint.tar'.format(checkpoint_iter))
 
 
 	# Load model if a loadFilename is provided
@@ -185,7 +183,7 @@ if __name__ == '__main__':
 	teacher_forcing_ratio = 1.0
 	learning_rate = 0.0001
 	decoder_learning_ratio = 5.0
-	n_iteration = 8000
+	n_iteration = 1000
 	print_every = 1
 	save_every = 500
 	
@@ -202,16 +200,26 @@ if __name__ == '__main__':
 	    decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 	
 	# If you have cuda, configure cuda to call
-	for state in encoder_optimizer.state.values():
-	    for k, v in state.items():
-	        if isinstance(v, torch.Tensor):
-	            state[k] = v.cuda()
+	# for state in encoder_optimizer.state.values():
+	#     for k, v in state.items():
+	#         if isinstance(v, torch.Tensor):
+	#             state[k] = v.cuda()
 	
-	for state in decoder_optimizer.state.values():
-	    for k, v in state.items():
-	        if isinstance(v, torch.Tensor):
-	            state[k] = v.cuda()
+	# for state in decoder_optimizer.state.values():
+	#     for k, v in state.items():
+	#         if isinstance(v, torch.Tensor):
+	#             state[k] = v.cuda()
 	
 	# Run training iterations
-	print("Starting Training!")
-	trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename)
+	# print("Starting Training!")
+	# trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
+
+	# Set dropout layers to eval mode
+	encoder.eval()
+	decoder.eval()
+	
+	# Initialize search module
+	searcher = GreedySearchDecoder(encoder, decoder)
+	
+	# Begin chatting (uncomment and run the following line to begin)
+	evaluateInput(encoder, decoder, searcher, voc)
