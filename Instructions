@@ -1,0 +1,7 @@
+To use the formatted Dwight text in training your chatbot, you need to change where the program pulls its input text,
+
+normally it has the following datafile = os.path.join(corpus, "formatted_movie_lines.txt"), but if we put formatted_Dwight.txt in the same directory all we need to do is change it to:
+datafile = os.path.join(corpus, "formatted_dwight.txt")
+
+and voila.  The text is in need of some cleaning no doubt, and I have doubts as to how well it will train a chatbot without being supplemented with additional training data.
+-Ty
