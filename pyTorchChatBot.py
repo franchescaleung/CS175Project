@@ -81,30 +81,30 @@ if __name__ == '__main__':
 	corpus = os.path.join("data", corpus_name)
 	
 	# Define path to new file
-	datafile = os.path.join(corpus, "formatted_movie_lines.txt")
+	datafile = os.path.join(corpus, "formatted_dwight.txt")
 	
-	delimiter = '\t'
-	# Unescape the delimiter
-	delimiter = str(codecs.decode(delimiter, "unicode_escape"))
+	# delimiter = '\t'
+	# # Unescape the delimiter
+	# delimiter = str(codecs.decode(delimiter, "unicode_escape"))
 
-	# Initialize lines dict, conversations list, and field ids
-	lines = {}
-	conversations = []
-	MOVIE_LINES_FIELDS = ["lineID", "characterID", "movieID", "character", "text"]
-	MOVIE_CONVERSATIONS_FIELDS = ["character1ID", "character2ID", "movieID", "utteranceIDs"]
+	# # Initialize lines dict, conversations list, and field ids
+	# lines = {}
+	# conversations = []
+	# MOVIE_LINES_FIELDS = ["lineID", "characterID", "movieID", "character", "text"]
+	# MOVIE_CONVERSATIONS_FIELDS = ["character1ID", "character2ID", "movieID", "utteranceIDs"]
 
-	# Load lines and process conversations
-	print("\nProcessing corpus...")
-	lines = loadLines(os.path.join(corpus, "movie_lines.txt"), MOVIE_LINES_FIELDS)
-	print("\nLoading conversations...")
-	conversations = loadConversations(os.path.join(corpus, "movie_conversations.txt"), lines, MOVIE_CONVERSATIONS_FIELDS)
+	# # Load lines and process conversations
+	# print("\nProcessing corpus...")
+	# lines = loadLines(os.path.join(corpus, "movie_lines.txt"), MOVIE_LINES_FIELDS)
+	# print("\nLoading conversations...")
+	# conversations = loadConversations(os.path.join(corpus, "movie_conversations.txt"), lines, MOVIE_CONVERSATIONS_FIELDS)
 
-	# Write new csv file
-	print("\nWriting newly formatted file...")
-	with open(datafile, 'w', encoding='utf-8') as  outputfile:
-		writer = csv.writer(outputfile, delimiter=delimiter, lineterminator='\n')
-		for pair in extractSentencePairs(conversations):
-			writer.writerow(pair)
+	# # Write new csv file
+	# print("\nWriting newly formatted file...")
+	# with open(datafile, 'w', encoding='utf-8') as  outputfile:
+	# 	writer = csv.writer(outputfile, delimiter=delimiter, lineterminator='\n')
+	# 	for pair in extractSentencePairs(conversations):
+	# 		writer.writerow(pair)
 
 	# Print a sample of lines
 	# print("\nSample lines from file:")
@@ -118,8 +118,6 @@ if __name__ == '__main__':
 	# for pair in pairs[:10]:
 	#     print(pair)
 
-	# Trim voc and pairs
-	pairs = trimRareWords(voc, pairs, MIN_COUNT)
 
 	# # Example for validation
 	# small_batch_size = 5
@@ -131,6 +129,8 @@ if __name__ == '__main__':
 	# print("target_variable:", target_variable)
 	# print("mask:", mask)
 	# print("max_target_len:", max_target_len)
+
+	# pause = input("Pausing...")
 
 	# Configure models
 	model_name = 'cb_model'
@@ -145,8 +145,9 @@ if __name__ == '__main__':
 	
 	# Set checkpoint to load from; set to None if starting from scratch
 	loadFilename = None
+	checkpoint = None
 	checkpoint_iter = 8000
-	loadFilename = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),'{}_checkpoint.tar'.format(checkpoint_iter))
+	# loadFilename = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),'{}_checkpoint.tar'.format(checkpoint_iter))
 
 
 	# Load model if a loadFilename is provided
@@ -180,12 +181,11 @@ if __name__ == '__main__':
 	print('Models built and ready to go!')
 
 	clip = 50.0
-	teacher_forcing_ratio = 1.0
-	learning_rate = 0.0001
+	learning_rate = 0.001
 	decoder_learning_ratio = 5.0
 	n_iteration = 1000
-	print_every = 1
-	save_every = 500
+	print_every = 10
+	save_every = 1000
 	
 	# Ensure dropout layers are in train mode
 	encoder.train()
@@ -200,19 +200,19 @@ if __name__ == '__main__':
 	    decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 	
 	# If you have cuda, configure cuda to call
-	# for state in encoder_optimizer.state.values():
-	#     for k, v in state.items():
-	#         if isinstance(v, torch.Tensor):
-	#             state[k] = v.cuda()
+	for state in encoder_optimizer.state.values():
+	    for k, v in state.items():
+	        if isinstance(v, torch.Tensor):
+	            state[k] = v.cuda()
 	
-	# for state in decoder_optimizer.state.values():
-	#     for k, v in state.items():
-	#         if isinstance(v, torch.Tensor):
-	#             state[k] = v.cuda()
+	for state in decoder_optimizer.state.values():
+	    for k, v in state.items():
+	        if isinstance(v, torch.Tensor):
+	            state[k] = v.cuda()
 	
 	# Run training iterations
-	# print("Starting Training!")
-	# trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
+	print("Starting Training!")
+	trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
 
 	# Set dropout layers to eval mode
 	encoder.eval()

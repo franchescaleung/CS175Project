@@ -129,7 +129,7 @@ def maskNLLLoss(inp, target, mask):
 	return loss, nTotal.item()
 
 
-def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip, max_length=MAX_LENGTH):
+def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip, max_length=10):
 
 	# Zero gradients
 	encoder_optimizer.zero_grad()
@@ -157,7 +157,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 	# Set initial decoder hidden state to the encoder's final hidden state
 	decoder_hidden = encoder_hidden[:decoder.n_layers]
 
-	teacher_forcing_ratio = 1.0
+	teacher_forcing_ratio = 1
 
 	# Determine if we are using teacher forcing this iteration
 	use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
@@ -285,7 +285,7 @@ class GreedySearchDecoder(nn.Module):
 		# Return collections of word tokens and scores
 		return all_tokens, all_scores
 
-def evaluate(encoder, decoder, searcher, voc, sentence, max_length=MAX_LENGTH):
+def evaluate(encoder, decoder, searcher, voc, sentence, max_length=10):
 	### Format input sentence as a batch
 	# words -> indexes
 	indexes_batch = [indexesFromSentence(voc, sentence)]
