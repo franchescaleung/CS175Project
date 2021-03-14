@@ -6,7 +6,7 @@ import os
 #
 # This file is the main program is our definition of what a word is.
 # Here we generate a bag of words model which is our first step in 
-# turning the word into computable code. This is very similar to an 
+# training our models. This is very similar to an 
 # earlier assignment we completed for this course. 
 #
 #===============================================================
