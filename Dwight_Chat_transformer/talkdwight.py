@@ -11,7 +11,7 @@ from TalkTrain import *
 
 opt = Options(batchsize=16, device=torch.device("cpu"), epochs=50, lr=0.01, max_len = 25, save_path = 'saved/weights/transformer_custom_weights') #initialize our options for the chatbot
 data_iter, infield, outfield, opt = json2datatools(path = 'saved/custompairs.json', opt=opt) #make out infield/outfield vocabulary from our custom query/response pairings
-emb_dim, n_layers, heads, dropout = 16, 4, 8, 0.1 #won't directly be used except in training, but needs to be defined for chatbot
+emb_dim, n_layers, heads, dropout = 16, 8, 8, 0.1 #won't directly be used except in training, but needs to be defined for chatbot
 dwight = Transformer(len(infield.vocab), len(outfield.vocab), emb_dim, n_layers, heads, dropout) #initialize the chatbot with its vocabulary
 dwight.load_state_dict(torch.load(opt.save_path)) #load weights and options into chatbot
 
