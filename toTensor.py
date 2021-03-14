@@ -6,6 +6,16 @@ from torch import optim
 import torch.nn.functional as F
 import itertools
 
+#===============================================================
+#
+# This file is the main program is primarily all helper functions for converting
+# the words in our input into pytorch friendly tensors. 
+# This section is again taken from the tutorial, with little changes. Since 
+# this was all formatting, we did not experiment at all with this subsection of code.
+#
+#===============================================================
+
+
 def indexesFromSentence(voc, sentence):
     return [voc.word2index[word] for word in sentence.split(' ')] + [EOS_token]
 

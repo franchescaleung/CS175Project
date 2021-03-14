@@ -21,9 +21,22 @@ from vocab import *
 from toTensor import *
 from Models import *
 
+#===============================================================
+#
+# This file is the main program that builds, trains, and runs the
+# model. A lot of the code is heavily followed from the tutorial mentioned
+# in the write up, but there are alot of individual comments more so
+# meant to help us in our understanding for the program.
+# There are helper functions at the beginning designed to help parse the 
+# data into a format that our model can read and interpret.
+#
+# We have already trained the model, so a lot of the code is commented out
+# due to not requiring it for the evaulation of the model. There is code 
+# with our implementation of nucleus sampling based off of the paper in the report
+# granted we had some issues with pytorch in this implementation. 
+#
+#===============================================================
 
-USE_CUDA = torch.cuda.is_available()
-device = torch.device("cuda" if USE_CUDA else "cpu")
 
 def printLines(file, n=10):
 	with open(file, 'rb') as datafile:
@@ -118,6 +131,8 @@ if __name__ == '__main__':
 	# for pair in pairs[:10]:
 	#     print(pair)
 
+	# Trim voc and pairs
+	# pairs = trimRareWords(voc, pairs, MIN_COUNT)
 
 	# # Example for validation
 	# small_batch_size = 5
@@ -147,7 +162,7 @@ if __name__ == '__main__':
 	loadFilename = None
 	checkpoint = None
 	checkpoint_iter = 8000
-	# loadFilename = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),'{}_checkpoint.tar'.format(checkpoint_iter))
+	loadFilename = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),'{}_checkpoint.tar'.format(checkpoint_iter))
 
 
 	# Load model if a loadFilename is provided
@@ -164,7 +179,7 @@ if __name__ == '__main__':
 	    voc.__dict__ = checkpoint['voc_dict']
 	
 	
-	print('Building encoder and decoder ...')
+	# print('Building encoder and decoder ...')
 	# Initialize word embeddings
 	embedding = nn.Embedding(voc.num_words, hidden_size)
 	if loadFilename:
@@ -178,7 +193,7 @@ if __name__ == '__main__':
 	# Use appropriate device
 	encoder = encoder.to(device)
 	decoder = decoder.to(device)
-	print('Models built and ready to go!')
+	# print('Models built and ready to go!')
 
 	clip = 50.0
 	learning_rate = 0.001
@@ -187,12 +202,12 @@ if __name__ == '__main__':
 	print_every = 10
 	save_every = 1000
 	
-	# Ensure dropout layers are in train mode
-	encoder.train()
-	decoder.train()
+	# # Ensure dropout layers are in train mode
+	# encoder.train()
+	# decoder.train()
 	
 	# Initialize optimizers
-	print('Building optimizers ...')
+	# print('Building optimizers ...')
 	encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
 	decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
 	if loadFilename:
@@ -200,19 +215,19 @@ if __name__ == '__main__':
 	    decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 	
 	# If you have cuda, configure cuda to call
-	for state in encoder_optimizer.state.values():
-	    for k, v in state.items():
-	        if isinstance(v, torch.Tensor):
-	            state[k] = v.cuda()
+	# for state in encoder_optimizer.state.values():
+	#     for k, v in state.items():
+	#         if isinstance(v, torch.Tensor):
+	#             state[k] = v.cuda()
 	
-	for state in decoder_optimizer.state.values():
-	    for k, v in state.items():
-	        if isinstance(v, torch.Tensor):
-	            state[k] = v.cuda()
+	# for state in decoder_optimizer.state.values():
+	#     for k, v in state.items():
+	#         if isinstance(v, torch.Tensor):
+	#             state[k] = v.cuda()
 	
 	# Run training iterations
-	print("Starting Training!")
-	trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
+	# print("Starting Training!")
+	# trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
 
 	# Set dropout layers to eval mode
 	encoder.eval()
@@ -220,6 +235,7 @@ if __name__ == '__main__':
 	
 	# Initialize search module
 	searcher = GreedySearchDecoder(encoder, decoder)
+	# searcher = nucleusSampling(encoder, decoder)
 	
 	# Begin chatting (uncomment and run the following line to begin)
 	evaluateInput(encoder, decoder, searcher, voc)

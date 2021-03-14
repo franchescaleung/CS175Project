@@ -8,15 +8,25 @@ import torch.nn.functional as F
 import itertools
 import random
 
-USE_CUDA = torch.cuda.is_available()
-device = torch.device("cuda" if USE_CUDA else "cpu")
+
+#===============================================================
+#
+# This file is where the magic happens. Here is the definitions of our models
+# Note that there is an Encoder, Luong Attention decoder, greedy search decorders (softmax)
+# and nucleus sampling based off of a linked git repo to the paper disussed in the report. 
+# Lastly, this holds the code for the actual running of the model in Evaluate. 
+#
+#===============================================================
 
 
 class EncoderRNN(nn.Module):
 	def __init__(self, hidden_size, embedding, n_layers=1, dropout=0):
 		super(EncoderRNN, self).__init__()
+		# set at 2
 		self.n_layers = n_layers
+		# set at 500
 		self.hidden_size = hidden_size
+		# from torch.nn embeddings
 		self.embedding = embedding
 
 		# Initialize GRU; the input_size and hidden_size params are both set to 'hidden_size'
@@ -116,7 +126,7 @@ class LuongAttnDecoderRNN(nn.Module):
 		concat_output = torch.tanh(self.concat(concat_input))
 		# Predict next word using Luong eq. 6
 		output = self.out(concat_output)
-		output = F.softmax(output, dim=1)
+		# output = F.softmax(output, dim=1)
 		# Return output and final hidden state
 		return output, hidden
 
@@ -127,6 +137,20 @@ def maskNLLLoss(inp, target, mask):
 	loss = crossEntropy.masked_select(mask).mean()
 	loss = loss.to(device)
 	return loss, nTotal.item()
+
+def nucleus(logits, top_p=0.0, filter_value=-float('Inf')):
+	sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+	cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+	
+	# Remove tokens with cumulative probability above the threshold
+	sorted_indices_to_remove = cumulative_probs > top_p
+	# Shift the indices to the right to keep also the first token above the threshold
+	sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+	sorted_indices_to_remove[..., 0] = 0
+
+	indices_to_remove = sorted_indices[sorted_indices_to_remove]
+	logits[indices_to_remove] = filter_value
+	return logits
 
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip, max_length=10):
@@ -280,6 +304,39 @@ class GreedySearchDecoder(nn.Module):
 			# Record token and score
 			all_tokens = torch.cat((all_tokens, decoder_input), dim=0)
 			all_scores = torch.cat((all_scores, decoder_scores), dim=0)
+			# Prepare current token to be next decoder input (add a dimension)
+			decoder_input = torch.unsqueeze(decoder_input, 0)
+		# Return collections of word tokens and scores
+		return all_tokens, all_scores
+
+class nucleusSampling(nn.Module):
+	def __init__(self, encoder, decoder):
+		super(nucleusSampling, self).__init__()
+		self.encoder = encoder
+		self.decoder = decoder
+
+	def forward(self, input_seq, input_length, max_length):
+		# Forward input through encoder model
+		encoder_outputs, encoder_hidden = self.encoder(input_seq, input_length)
+		# Prepare encoder's final hidden layer to be first hidden input to the decoder
+		decoder_hidden = encoder_hidden[:self.decoder.n_layers]
+		# Initialize decoder input with SOS_token
+		decoder_input = torch.ones(1, 1, device=device, dtype=torch.long) * SOS_token
+		# Initialize tensors to append decoded words to
+		all_tokens = torch.zeros([0], device=device, dtype=torch.long)
+		all_scores = torch.zeros([0], device=device)
+		# Iteratively decode one word token at a time
+		for _ in range(max_length):
+			# Forward pass through decoder
+			decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden, encoder_outputs)
+			# decoder_output = decoder_output[0, -1, :]
+			filtered_decoder_output = nucleus(decoder_output, .9)
+
+			# Obtain most likely word token and its softmax score
+			probabilities, decoder_input = torch.max(filtered_decoder_output, dim=-1)	
+			# Record token and score
+			all_tokens = torch.cat((all_tokens, decoder_input), dim=0)
+			all_scores = torch.cat((all_scores, probabilities), dim=0)
 			# Prepare current token to be next decoder input (add a dimension)
 			decoder_input = torch.unsqueeze(decoder_input, 0)
 		# Return collections of word tokens and scores
