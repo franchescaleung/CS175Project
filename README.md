@@ -5,6 +5,7 @@
 ######    - Models.py --> the definitions of our models (encoder, decoder, attention) and running code for model
 ######    - toTensor.py --> helper functions for converting the words in our input into pytorch friendly tensors
 ######    - vocab.py --> defines word for the RNN model
+######    - data.zip --> data needed for RNN_model
 ##
 ## Folder: Transformer_model
 ##### followed github model: https://github.com/clam004/chat-transformer
@@ -15,7 +16,7 @@
 ######      - talkdwight.py: script to run 
 ##
 ## Folder: Corpus
-#### text files of parsed data
+###### - text files of parsed data
 ## 
-## Requirements to run code is in requirements.txt in /src
+## Note: Requirements to run code is in requirements.txt in /src
 
