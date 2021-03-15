@@ -162,7 +162,7 @@ if __name__ == '__main__':
 	# Set checkpoint to load from; set to None if starting from scratch
 	loadFilename = None
 	checkpoint = None
-	checkpoint_iter = 1000
+	checkpoint_iter = 8000
 	loadFilename = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),'{}_checkpoint.tar'.format(checkpoint_iter))
 
 
@@ -228,7 +228,7 @@ if __name__ == '__main__':
 	
 	# Run training iterations
 	# print("Starting Training!")
-	trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
+	# trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
 
 	# Set dropout layers to eval mode
 	encoder.eval()
