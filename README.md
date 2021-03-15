@@ -1,9 +1,10 @@
 # The Office Chatbot
-## Files:
-#### pyTorchChatBot.py --> 
-#### Models.py -->
-#### models.py --> 
-#### vocab.py --> 
+## Folder: RNN_model
+#### files in folder:
+######    - pyTorchChatBot.py --> builds, trains, and runs the model
+######    - Models.py --> the definitions of our models (encoder, decoder, attention) and running code for model
+######    - toTensor.py --> helper functions for converting the words in our input into pytorch friendly tensors
+######    - vocab.py --> defines word for the RNN model
 ##
 ## Folder:
 #### Dwight_Chat_transformer: folder that contains a transformer model that the professor suggested us to look into
