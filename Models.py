@@ -375,6 +375,23 @@ dwight.load_state_dict(torch.load(opt.save_path)) #load weights and options into
 
 def evaluateInput(encoder, decoder, searcher, voc):
 	input_sentence = ''
+	samples = ["hello", "what is up", "bye"]
+	for sample in samples:
+		input_sentence = sample
+		print("> ", input_sentence)
+		# Check if it is quit case
+		if input_sentence == 'q' or input_sentence == 'quit': break
+		#get input from user
+		dwight_reply = talk_to_chloe(input_sentence, dwight, opt, infield, outfield)
+		# Normalize sentence
+		input_sentence = normalizeString(input_sentence)
+		# Evaluate sentence
+		output_words = evaluate(encoder, decoder, searcher, voc, input_sentence)
+		# Format and print response sentence
+		output_words[:] = [x for x in output_words if not (x == 'EOS' or x == 'PAD')]
+		print('RNNDwightBot:', ' '.join(output_words))
+		print('TransformerDwightBot: '+ dwight_reply + '\n')
+
 	while(1):
 		try:
 			# Get input sentence
