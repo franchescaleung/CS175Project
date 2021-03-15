@@ -7,6 +7,12 @@ from torch import optim
 import torch.nn.functional as F
 import itertools
 import random
+import math, copy, sys
+import nltk
+nltk.download('wordnet')
+from Dwight_Chat_transformer.MoveData import *
+from Dwight_Chat_transformer.Transformer import *
+from Dwight_Chat_transformer.TalkTrain import *
 
 
 #===============================================================
@@ -361,6 +367,12 @@ def evaluate(encoder, decoder, searcher, voc, sentence, max_length=10):
 	return decoded_words
 
 
+opt = Options(batchsize=16, device=torch.device("cpu"), epochs=50, lr=0.01, max_len = 25, save_path = 'Dwight_Chat_transformer/saved/weights/transformer_custom_weights') #initialize our options for the chatbot
+data_iter, infield, outfield, opt = json2datatools(path = 'Dwight_Chat_transformer/saved/custompairs.json', opt=opt) #make out infield/outfield vocabulary from our custom query/response pairings
+emb_dim, n_layers, heads, dropout = 16, 8, 8, 0.1 #won't directly be used except in training, but needs to be defined for chatbot
+dwight = Transformer(len(infield.vocab), len(outfield.vocab), emb_dim, n_layers, heads, dropout) #initialize the chatbot with its vocabulary
+dwight.load_state_dict(torch.load(opt.save_path)) #load weights and options into chatbot
+
 def evaluateInput(encoder, decoder, searcher, voc):
 	input_sentence = ''
 	while(1):
@@ -369,13 +381,16 @@ def evaluateInput(encoder, decoder, searcher, voc):
 			input_sentence = input('> ')
 			# Check if it is quit case
 			if input_sentence == 'q' or input_sentence == 'quit': break
+			#get input from user
+			dwight_reply = talk_to_chloe(input_sentence, dwight, opt, infield, outfield)
 			# Normalize sentence
 			input_sentence = normalizeString(input_sentence)
 			# Evaluate sentence
 			output_words = evaluate(encoder, decoder, searcher, voc, input_sentence)
 			# Format and print response sentence
 			output_words[:] = [x for x in output_words if not (x == 'EOS' or x == 'PAD')]
-			print('Bot:', ' '.join(output_words))
+			print('RNNDwightBot:', ' '.join(output_words))
+			print('TransformerDwightBot: '+ dwight_reply + '\n')
 
 		except KeyError:
 			print("Error: Encountered unknown word.")
