@@ -18,7 +18,8 @@ import random
 #
 #===============================================================
 
-
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda" if USE_CUDA else "cpu")
 class EncoderRNN(nn.Module):
 	def __init__(self, hidden_size, embedding, n_layers=1, dropout=0):
 		super(EncoderRNN, self).__init__()
@@ -126,7 +127,7 @@ class LuongAttnDecoderRNN(nn.Module):
 		concat_output = torch.tanh(self.concat(concat_input))
 		# Predict next word using Luong eq. 6
 		output = self.out(concat_output)
-		# output = F.softmax(output, dim=1)
+		output = F.softmax(output, dim=1)
 		# Return output and final hidden state
 		return output, hidden
 

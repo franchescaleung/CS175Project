@@ -86,7 +86,8 @@ def extractSentencePairs(conversations):
 			if inputLine and targetLine:
 				qa_pairs.append([inputLine, targetLine])
 	return qa_pairs
-
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda" if USE_CUDA else "cpu")
 
 if __name__ == '__main__':
 	
@@ -94,7 +95,7 @@ if __name__ == '__main__':
 	corpus = os.path.join("data", corpus_name)
 	
 	# Define path to new file
-	datafile = os.path.join(corpus, "formatted_dwight.txt")
+	datafile = os.path.join(corpus, "dwight_text_RNN.txt")
 	
 	# delimiter = '\t'
 	# # Unescape the delimiter
@@ -135,9 +136,9 @@ if __name__ == '__main__':
 	# pairs = trimRareWords(voc, pairs, MIN_COUNT)
 
 	# # Example for validation
-	# small_batch_size = 5
-	# batches = batch2TrainData(voc, [random.choice(pairs) for _ in range(small_batch_size)])
-	# input_variable, lengths, target_variable, mask, max_target_len = batches
+	small_batch_size = 5
+	batches = batch2TrainData(voc, [random.choice(pairs) for _ in range(small_batch_size)])
+	input_variable, lengths, target_variable, mask, max_target_len = batches
 
 	# print("input_variable:", input_variable)
 	# print("lengths:", lengths)
@@ -161,7 +162,7 @@ if __name__ == '__main__':
 	# Set checkpoint to load from; set to None if starting from scratch
 	loadFilename = None
 	checkpoint = None
-	checkpoint_iter = 8000
+	checkpoint_iter = 1000
 	loadFilename = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),'{}_checkpoint.tar'.format(checkpoint_iter))
 
 
@@ -198,13 +199,13 @@ if __name__ == '__main__':
 	clip = 50.0
 	learning_rate = 0.001
 	decoder_learning_ratio = 5.0
-	n_iteration = 1000
-	print_every = 10
+	n_iteration = 8000
+	print_every = 1000
 	save_every = 1000
 	
 	# # Ensure dropout layers are in train mode
-	# encoder.train()
-	# decoder.train()
+	encoder.train()
+	decoder.train()
 	
 	# Initialize optimizers
 	# print('Building optimizers ...')
@@ -227,7 +228,7 @@ if __name__ == '__main__':
 	
 	# Run training iterations
 	# print("Starting Training!")
-	# trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
+	trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename, checkpoint)
 
 	# Set dropout layers to eval mode
 	encoder.eval()
